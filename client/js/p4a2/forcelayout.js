@@ -13,7 +13,7 @@ var force_layout = {
 	addCommunicator: function () {
 		var self = this;
 		self.identity = 'tdw';
-		self.wsHost = '192.168.1.133'; //if you want to change it, then you should change them in the hub-ws.js
+		self.wsHost = '192.168.40.30'; //if you want to change it, then you should change them in the hub-ws.js
 		self.wsPort = 15001;
 		self.wsPath = '/ws';
         console.log("******start websocket******");
@@ -35,7 +35,7 @@ var force_layout = {
 				self.dataFromPhone.sender = state.data.sender;
 				self.dataFromPhone.name = state.data.name;
 				self.dataFromPhone.data = state.data.payload;
-
+                
 				switch (state.name) {
 					case 'Hello':
 						self.greetingHandler(state.data);
@@ -131,15 +131,23 @@ var force_layout = {
 	},
 	nodeArrAnimationHandler: function(data) {
 		var self = this;
-		data = data.data;
 		var wholeData = data;
 		data = data.payload;
-		console.log("***************start ChangeColor****************")
+		console.log("receive photo");
+		console.log(data);
 		for(var i in data){
-			d3.select("#" + data[i]).attr("fill","red")
+			console.log('circle id', data[i] )
+			d3.select("#node" + data[i]).style("fill", "red")
 		}
 		// my function -- change color red
 	},
+	// data = data.data;
+	// 	var wholeData = data;
+	// 	data = data.payload;
+	// 	console.log("***************start ChangeColor****************")
+	// 	for(var i in data){
+	// 		d3.select("#" + data[i]).attr("fill","red")
+	// 	}
 	// draw graph
 	render: function() {
 		var self = this;
@@ -171,7 +179,7 @@ var force_layout = {
 							.append("circle")
 							.attr("r", 10)
 							.attr("id", function (d) {
-								return d.id;
+								return 'node'+d.id;
 							})
 							.style("fill", "steelblue")	
 							.call(force.drag)
