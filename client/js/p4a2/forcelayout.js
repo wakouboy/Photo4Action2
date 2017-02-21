@@ -13,7 +13,7 @@ var force_layout = {
 	addCommunicator: function () {
 		var self = this;
 		self.identity = 'tdw';
-		self.wsHost = '192.168.40.30'; //if you want to change it, then you should change them in the hub-ws.js
+		self.wsHost = '192.168.10.20'; //if you want to change it, then you should change them in the hub-ws.js
 		self.wsPort = 15001;
 		self.wsPath = '/ws';
         console.log("******start websocket******");
