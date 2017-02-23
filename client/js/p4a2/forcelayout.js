@@ -1,11 +1,11 @@
 var force_layout = {
 	init: function () {
 		var self = this;
-		console.log(testData)
+		//console.log(testData)
 		//draw
 		// communicator
 		self.addCommunicator();
-		//self.render()
+
 		self.setInitReadyData();
 		self.forceLayout();
 	},
@@ -19,7 +19,7 @@ var force_layout = {
         console.log("******start websocket******");
 		self.ws = start_websocket(self.identity, self.wsHost, self.wsPort, self.wsPath, onmessage_callback = function(msg) {
 			console.log('msg~~~~', msg);
-			console.log('msg~~~~~', msg.data);
+			//console.log('msg~~~~~', msg.data);
 			window.state = recv_state_update(msg.data);
 			if (typeof state.data !== "string") {
 				state.data = String.fromCharCode.apply(null, new Uint8Array(state.data));
@@ -81,7 +81,7 @@ var force_layout = {
 	},
 	calGraphLayoutResult:function(data) {
 		console.log("***************")
-		console.log(data.nodes)
+		//console.log(data.nodes)
 		console.log("***************")
 		var resultData = {};
   		resultData.nodes = [];
@@ -150,140 +150,106 @@ var force_layout = {
 	// 		d3.select("#" + data[i]).attr("fill","red")
 	// 	}
 	// draw graph
-	render: function() {
-		console.log('chen')
-		var radius = 10
-		var self = this;
-		var width = $('#graph').width();
-		var height = 200
-		var svg = d3.select("#graph")
-					.append("svg")
-					.attr("width", width)
-					.attr("height", height);
-		
-		var force = d3.layout.force()
-				.nodes(testData.testGraph.nodes)		
-				.links(testData.testGraph.links)		
-				.size([width, height])	
-				.linkDistance(100)	
-				.charge(-400);	
 
-		
-
-		var svg_edges = svg.selectAll("line")
-							.data(testData.testGraph.links)
-							.enter()
-							.append("line")
-							.style("stroke", "#ccc")
-							.style("stroke-width", 1);			
-		var svg_nodes = svg.selectAll("circle")
-							.data(testData.testGraph.nodes)
-							.enter()
-							.append("circle")
-							.attr("r", radius)
-							.attr("id", function (d) {
-								return 'node'+d.id;
-							})
-							.style("fill", "steelblue")	
-							.call(force.drag)
-
-		force.on("tick", tick)
-			 .start()
-
-
-		
-
-		function tick(){
-			svg_nodes.attr("cx", function (d) { return d.x=Math.max(radius, Math.min(width - radius, d.x)); })
-			 		.attr("cy", function (d) { return d.y=Math.max(radius, Math.min(height- radius, d.y)) ;})
-			svg_edges.attr("x1", function (d) { return d.source.x; })
-			 		.attr("y1", function (d) { return d.source.y; })
-			 		.attr("x2", function (d) { return d.target.x; })
-			 		.attr("y2", function (d) { return d.target.y; })
-			 	}
-		
-			 
-			
-			// if(force.alpha() < 0.03)
-			// {
-			//  	console.log("***********")
-			//  	self.calGraphLayoutResult(testData.testGraph)
-			// 	var msgData = {};
-			// 	msgData.target = 11;
-			// 	msgData.ts = Date.parse(new Date());
-			// 	msgData.payload = result;
-			// 	msgData = JSON.stringify(msgData);
-			// 	console.log("***********", msgData);
-			// 	force.stop();
-			// }
-	
-
-	},
 	setInitReadyData:function () {
 		var self = this;
 	    self.coauthorGraph = readyData.coauthorGraph;
 	},
 	forceLayout: function () {
-		var self = this;
-		self.svgWidth = $('#graph').width()
-		self.svgHeight = $('#graph').height()
-		var width = self.svgWidth
-		var height = self.svgHeight
-		var radius = 5
-		var svg = d3.select("#graph")
-					.append("svg")
-					.attr("width", self.svgWidth)
-					.attr("height", self.svgHeight);
-		
-		var force = d3.layout.force()
-				.nodes(self.coauthorGraph.nodes)		
-				.links(self.coauthorGraph.links)		
-				.size([self.svgWidth, self.svgHeight])	
-				.linkDistance(40)	
-				.charge(-30);	
+		var width = $('#graph').width()
+		var height = $('#graph').height()
+		var svg = d3.select('#graph').append('svg')
+						     .attr('width', width)
+						     .attr('height', height)
 
-		force.start();	
+        var linkWidth = 1
+        var nodeSize = 5
+		var simulation = d3.forceSimulation()
+		    .force("link", d3.forceLink().id(function(d) { return d.id; }).distance(20))
+		    .force("charge", d3.forceManyBody())
+		    .force("center", d3.forceCenter(width / 2, height / 2))
+		    .force('X', d3.forceX().x(0).strength(0.02))
+		    .force('Y', d3.forceY().y(0).strength(0.2))
 
 
-		var svg_edges = svg.selectAll("line")
-							.data(self.coauthorGraph.links)
-							.enter()
-							.append("line")
-							.style("stroke", "#ccc")
-							.style("stroke-width", 1);			
-		var svg_nodes = svg.selectAll("circle")
-							.data(self.coauthorGraph.nodes)
-							.enter()
-							.append("circle")
-							.attr("r", radius)
-							.attr("id", function (d) {
-								return "node" + d.id;
-							})
-							.style("fill", "steelblue")
-		force.on("tick", function(){
+		d3.json("data/nodes3908links12161.json", function(error, graph) {
 
-			svg_nodes.attr("cx", function (d) { return d.x=Math.max(radius, Math.min(width - radius, d.x)); })
-			 		.attr("cy", function (d) { return d.y=Math.max(radius, Math.min(height - radius, d.y)); });
-			svg_edges.attr("x1", function (d) { return d.source.x; })
-			 		.attr("y1", function (d) { return d.source.y; })
-			 		.attr("x2", function (d) { return d.target.x; })
-			 		.attr("y2", function (d) { return d.target.y; });
-			
-		    if(force.alpha() < 0.03)
-			{
-			 	console.log("*************nodes", self.coauthorGraph.nodes)
-			 	console.log("*************links", self.coauthorGraph.links)
-			 	console.log("***********")
-			 	var result = self.calGraphLayoutResult(self.coauthorGraph)
-				var msgData = {};
-				msgData.target = 11;
-				msgData.ts = Date.parse(new Date());
-				msgData.payload = result;
-				msgData = JSON.stringify(msgData);
-				console.log("***********", msgData);
-				force.stop();
-			}
+		  if (error) throw error;
+          
+          var nodesData = graph.coauthorGraph.nodes
+          for(var i in nodesData){
+          		var tmpId = nodesData[i].id
+          		nodesData[i].id = nodesData[i].index
+          		nodesData[i].pid = tmpId
+          }
+          var linksData = graph.coauthorGraph.links
+		  var link = svg.append("g")
+		      			.attr("class", "links")
+		    			.selectAll("line")
+		   				.data(linksData)
+		  				.enter().append("line")
+		      			.attr("stroke-width", function(d) { return linkWidth; })
+		      			.attr("stroke", "#999")
+		      			.attr("stroke-opacity", 0.6)
+
+		  var node = svg.append("g")
+		      			.attr("class", "nodes")
+		    			.selectAll("circle")
+		    			.data(nodesData)
+		   				.enter().append("circle")
+		      		    .attr("r", function (d) {
+		      		    	// body...
+		      		    	return Math.pow(d.paperNum, 0.3)
+		      		    })
+		      			.attr("fill", function(d) { return 'rgb(55,184,222)'; })
+		      			.call(d3.drag()
+		         		.on("start", dragstarted)
+		          		.on("drag", dragged)
+		          		.on("end", dragended));
+
+		  node.append("title")
+		      .text(function(d) { return d.name + ' ' + 'PaperNum ' +d.paperNum; });
+
+		  simulation
+		      .nodes(graph.coauthorGraph.nodes)
+		      .on("tick", ticked)
+		      
+
+
+		  simulation.force("link")
+		      .links(graph.coauthorGraph.links)
+
+
+
+		  function ticked() {
+		    link
+		        .attr("x1", function(d) { return d.source.x; })
+		        .attr("y1", function(d) { return d.source.y; })
+		        .attr("x2", function(d) { return d.target.x; })
+		        .attr("y2", function(d) { return d.target.y; });
+
+		    node
+		        .attr("cx", function(d) { return d.x; })
+		        .attr("cy", function(d) { return d.y; });
+		  	}
 		});
+
+		function dragstarted(d) {
+		  if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+		  		d.fx = d.x;
+		  		d.fy = d.y;
+		}
+
+		function dragged(d) {
+		  		d.fx = d3.event.x;
+		  		d.fy = d3.event.y;
+		}
+
+		function dragended(d) {
+		  if (!d3.event.active) simulation.alphaTarget(0);
+		  		d.fx = null;
+		  		d.fy = null;
+		}
 
 	}
 }
