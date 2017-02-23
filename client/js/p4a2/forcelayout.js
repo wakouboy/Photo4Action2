@@ -82,7 +82,7 @@ var force_layout = {
 	calGraphLayoutResult:function(data) {
 		console.log("***************")
 		//console.log(data.nodes)
-		console.log("***************")
+		console.log("***************", data)
 		var resultData = {};
   		resultData.nodes = [];
   		resultData.links = {};
@@ -92,7 +92,7 @@ var force_layout = {
     		var y = Math.floor(d_node.y);
     		//console.log(d_node.id+ " x "+ d_node.x + " y " + d_node.y );
     		var r = 5;
-    		var id = d_node.id;
+    		var id = d_node.nameid;
     		var name = d_node.name;
     		obj.push(x);
     		obj.push(y);
@@ -103,14 +103,15 @@ var force_layout = {
   		});
 
   		data.links.forEach(function(d_link, i_link){
-   			var sourceId = d_link.source.id;
-    		var targetId = d_link.target.id;
-    		if(resultData.links[sourceId] === undefined)
+   			var sourceNameId= d_link.source.nameid;
+    		var targetNameId = d_link.target.nameid;
+    		if(resultData.links[sourceNameId] === undefined)
     		{
-      			resultData.links[sourceId] = [];
+      			resultData.links[sourceNameId] = [];
    			}
-    		resultData.links[sourceId].push(targetId);
+    		resultData.links[sourceNameId].push(targetNameId);
   		});
+  		console.log(resultData)
   		return resultData;
 	},
 	selectTaskHandler:function(data){
@@ -156,32 +157,39 @@ var force_layout = {
 	    self.coauthorGraph = readyData.coauthorGraph;
 	},
 	forceLayout: function () {
+		var self = this
 		var width = $('#graph').width()
 		var height = $('#graph').height()
 		var svg = d3.select('#graph').append('svg')
 						     .attr('width', width)
 						     .attr('height', height)
-
+		self.width = width
+		self.height = height
         var linkWidth = 1
         var nodeSize = 5
 		var simulation = d3.forceSimulation()
-		    .force("link", d3.forceLink().id(function(d) { return d.id; }).distance(20))
-		    .force("charge", d3.forceManyBody())
+		    .force("link", d3.forceLink().id(function(d) { return d.id; }).distance(2))
+		    .force("charge", d3.forceManyBody(-40))
 		    .force("center", d3.forceCenter(width / 2, height / 2))
 		    .force('X', d3.forceX().x(0).strength(0.02))
 		    .force('Y', d3.forceY().y(0).strength(0.2))
 
-
-		d3.json("data/nodes3908links12161.json", function(error, graph) {
+        // nodes79links292
+        // nodes
+		d3.json("data/nodes5238links17953.json", function(error, graph) {
 
 		  if (error) throw error;
-          
+          self.coauthorGraph = graph.coauthorGraph
           var nodesData = graph.coauthorGraph.nodes
+
           for(var i in nodesData){
           		var tmpId = nodesData[i].id
           		nodesData[i].id = nodesData[i].index
-          		nodesData[i].pid = tmpId
+          		nodesData[i]['nameid'] = tmpId
           }
+
+          graph.coauthorGraph.nodes = nodesData
+          self.coauthorGraph = graph.coauthorGraph
           var linksData = graph.coauthorGraph.links
 		  var link = svg.append("g")
 		      			.attr("class", "links")
@@ -197,9 +205,15 @@ var force_layout = {
 		    			.selectAll("circle")
 		    			.data(nodesData)
 		   				.enter().append("circle")
+		  				// .forEach(function(d){
+		  				// 	var tmpId = nodesData[i]
+		  				// })
 		      		    .attr("r", function (d) {
 		      		    	// body...
 		      		    	return Math.pow(d.paperNum, 0.3)
+		      		    })
+		      		    .attr("id", function(d){
+		      		    	return 'node'+d.nameid
 		      		    })
 		      			.attr("fill", function(d) { return 'rgb(55,184,222)'; })
 		      			.call(d3.drag()
@@ -219,9 +233,13 @@ var force_layout = {
 		  simulation.force("link")
 		      .links(graph.coauthorGraph.links)
 
-
-
+          var padding = 50
 		  function ticked() {
+
+		  	var minH = 10000000
+		  	var maxH = -1
+		  	var minW = 10000000
+		  	var maxW = -1
 		    link
 		        .attr("x1", function(d) { return d.source.x; })
 		        .attr("y1", function(d) { return d.source.y; })
@@ -229,11 +247,55 @@ var force_layout = {
 		        .attr("y2", function(d) { return d.target.y; });
 
 		    node
-		        .attr("cx", function(d) { return d.x; })
-		        .attr("cy", function(d) { return d.y; });
-		  	}
-		});
+		        .attr("cx", function(d) { minW = Math.min(minW, d.x); maxW = Math.max(maxW, d.x); return d.x; })
+		        .attr("cy", function(d) { minH = Math.min(minH, d.y); maxH = Math.max(maxH, d.y); return d.y; })
 
+	       if(simulation.alpha()<0.4) {
+	       	    //console.log(minW, maxW, minH, maxH)
+	       	    if(minW<padding || maxW > self.width-padding){
+	       	    	//console.log(minW, minH, maxH, maxW)
+	       	    	node.attr('cx', function(d){
+	       	    			d.x = (d.x - minW)/(maxW - minW)*(self.width - padding*2) + padding
+	       	    			//console.log(d.x)
+	       	    			return d.x
+	       	    		})
+	       	    		
+	       	    	link
+		        	.attr("x1", function(d) { return d.source.x; })
+		       		.attr("y1", function(d) { return d.source.y; })
+		        	.attr("x2", function(d) { return d.target.x; })
+		        	.attr("y2", function(d) { return d.target.y; });
+		        	$("#load").css('display','none'); 
+		        	$("#graph").css('display','block'); 
+	       	    	simulation.restart()
+	       	    }
+	       	    if(minH<padding || maxH > self.height-padding){
+	       	    	//console.log(minW, minH, maxH, maxW)
+	       	    	node
+	       	    		.attr('cy', function(d){
+	       	    	    	d.y = (d.y - minH)/(maxH - minH)*(self.height - padding*2) + padding
+	       	    	    	return d.y
+	       	    	    })
+	       	    	link
+		        	.attr("x1", function(d) { return d.source.x; })
+		       		.attr("y1", function(d) { return d.source.y; })
+		        	.attr("x2", function(d) { return d.target.x; })
+		        	.attr("y2", function(d) { return d.target.y; });
+		        	$("#load").css('display','none'); 
+		        	$("#graph").css('display','block'); 
+	       	    	simulation.restart()
+
+	       	    }
+	       }
+	       if(simulation.alpha() < 0.1){
+	       		$("#load").css('display','none'); 
+		        $("#graph").css('display','block'); 
+		        simulation.stop()
+	       }
+	  	 }
+
+		});
+      
 		function dragstarted(d) {
 		  if (!d3.event.active) simulation.alphaTarget(0.3).restart();
 		  		d.fx = d.x;

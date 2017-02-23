@@ -2,8 +2,20 @@
 .navbar {min-height:30px !important; margin-bottom: 0px !important;}
 #graph {
 	position: absolute;
-	top: 50px;
-	height: calc(100% - 50px);
+	/*top: 50px;*/
+	height: 100%;
 	width: 100%;
+	display: none;
 
+}
+
+#load {
+	
+	position: absolute;
+	top: 0%;
+
+	background-color: #ccc;
+	/*top: 50px;*/
+	height: 100%;
+	width: 100%;
 }
