@@ -151,9 +151,11 @@ var force_layout = {
 	// 	}
 	// draw graph
 	render: function() {
+		console.log('chen')
+		var radius = 10
 		var self = this;
-		var width = 800;
-		var height = 600;
+		var width = $('#graph').width();
+		var height = 200
 		var svg = d3.select("#graph")
 					.append("svg")
 					.attr("width", width)
@@ -166,7 +168,7 @@ var force_layout = {
 				.linkDistance(100)	
 				.charge(-400);	
 
-		force.start();	
+		
 
 		var svg_edges = svg.selectAll("line")
 							.data(testData.testGraph.links)
@@ -178,20 +180,30 @@ var force_layout = {
 							.data(testData.testGraph.nodes)
 							.enter()
 							.append("circle")
-							.attr("r", 10)
+							.attr("r", radius)
 							.attr("id", function (d) {
 								return 'node'+d.id;
 							})
 							.style("fill", "steelblue")	
 							.call(force.drag)
-		force.on("tick", function(){
+
+		force.on("tick", tick)
+			 .start()
+
+
+		
+
+		function tick(){
+			svg_nodes.attr("cx", function (d) { return d.x=Math.max(radius, Math.min(width - radius, d.x)); })
+			 		.attr("cy", function (d) { return d.y=Math.max(radius, Math.min(height- radius, d.y)) ;})
 			svg_edges.attr("x1", function (d) { return d.source.x; })
 			 		.attr("y1", function (d) { return d.source.y; })
 			 		.attr("x2", function (d) { return d.target.x; })
-			 		.attr("y2", function (d) { return d.target.y; });
+			 		.attr("y2", function (d) { return d.target.y; })
+			 	}
+		
 			 
-			svg_nodes.attr("cx", function (d) { return d.x; })
-			 		.attr("cy", function (d) { return d.y; });
+			
 			// if(force.alpha() < 0.03)
 			// {
 			//  	console.log("***********")
@@ -204,7 +216,7 @@ var force_layout = {
 			// 	console.log("***********", msgData);
 			// 	force.stop();
 			// }
-		});
+	
 
 	},
 	setInitReadyData:function () {
@@ -213,8 +225,11 @@ var force_layout = {
 	},
 	forceLayout: function () {
 		var self = this;
-		self.svgWidth = 1000;
-		self.svgHeight = 600;
+		self.svgWidth = $('#graph').width()
+		self.svgHeight = $('#graph').height()
+		var width = self.svgWidth
+		var height = self.svgHeight
+		var radius = 5
 		var svg = d3.select("#graph")
 					.append("svg")
 					.attr("width", self.svgWidth)
@@ -224,8 +239,8 @@ var force_layout = {
 				.nodes(self.coauthorGraph.nodes)		
 				.links(self.coauthorGraph.links)		
 				.size([self.svgWidth, self.svgHeight])	
-				.linkDistance(50)	
-				.charge(-100);	
+				.linkDistance(40)	
+				.charge(-30);	
 
 		force.start();	
 
@@ -240,19 +255,20 @@ var force_layout = {
 							.data(self.coauthorGraph.nodes)
 							.enter()
 							.append("circle")
-							.attr("r", 5)
+							.attr("r", radius)
 							.attr("id", function (d) {
 								return "node" + d.id;
 							})
 							.style("fill", "steelblue")
 		force.on("tick", function(){
+
+			svg_nodes.attr("cx", function (d) { return d.x=Math.max(radius, Math.min(width - radius, d.x)); })
+			 		.attr("cy", function (d) { return d.y=Math.max(radius, Math.min(height - radius, d.y)); });
 			svg_edges.attr("x1", function (d) { return d.source.x; })
 			 		.attr("y1", function (d) { return d.source.y; })
 			 		.attr("x2", function (d) { return d.target.x; })
 			 		.attr("y2", function (d) { return d.target.y; });
-			 
-			svg_nodes.attr("cx", function (d) { return d.x; })
-			 		.attr("cy", function (d) { return d.y; });
+			
 		    if(force.alpha() < 0.03)
 			{
 			 	console.log("*************nodes", self.coauthorGraph.nodes)
