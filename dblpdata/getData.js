@@ -64,4 +64,4 @@ searchAuthorByNameArr = function(value){
 // initSearchName = ['Kwan-Liu Ma', 'Xiaoru Yuan', 'Jie Liang','Qing Li', 'Jing Li','Wei Li', 'Chen Wang', 'Thomas Ertl'
 // , 'Xin Zhang','Jiawan Zhang', 'Hans-Peter Seidel', 'Daniel A. Keim', 'Shixia Liu','Tobias H\u00f6llerer', 'Huamin Qu', 'Robert B. Ross', 'Han-Wei Shen', 'Jian Huang','Ke Zhang'
 // ,'Bernhard Preim','Tzi-cker Chiueh', 'Baining Guo','Liang Chen', 'Dhabaleswar K. Panda','Ke Zhang','Yifan Hu' ]
-initSearchName = ['Xiaoru Yuan','Kwan-Liu Ma']
+initSearchName = ['Xiaoru Yuan']
