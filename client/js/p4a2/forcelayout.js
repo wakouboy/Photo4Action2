@@ -91,7 +91,7 @@ var force_layout = {
     		var x = Math.floor(d_node.x);
     		var y = Math.floor(d_node.y);
     		//console.log(d_node.id+ " x "+ d_node.x + " y " + d_node.y );
-    		var r = 5;
+    		var r = Math.pow(d_node.paperNum, 0.3)
     		var id = d_node.id;
     		var name = d_node.name;
     		obj.push(x);
@@ -136,21 +136,30 @@ var force_layout = {
 		data = data.payload;
 		console.log("receive photo");
 		console.log(data);
+		var borderArray = {};
+		borderArray.cx=[]
+		borderArray.cy=[]
 		for(var i in data){
 			console.log('circle id', data[i] )
-			d3.select("#node" + data[i]).style("fill", "red")
+			var selectionNode = d3.select("#node" + data[i])
+			borderArray.cx.push(selectionNode.attr("cx"))
+			borderArray.cy.push(selectionNode.attr("cy"))
+			selectionNode.style("fill", "red")
 		}
+		var selectionBorder={}
+		selectionBorder.left = d3.min(borderArray.cx)
+		selectionBorder.right = d3.max(borderArray.cx)
+		selectionBorder.top = d3.min(borderArray.cy)
+		selectionBorder.bottom = d3.max(borderArray.cy)
+		d3.select("svg").append("rect")
+			.attr("x",selectionBorder.left-100)
+			.attr("y",selectionBorder.top-100)
+			.attr("width",selectionBorder.right - selectionBorder.left+200)
+			.attr("height",selectionBorder.bottom - selectionBorder.top+200)
+			.attr("fill","red")
+			.attr("opacity",0.1)
 		// my function -- change color red
 	},
-	// data = data.data;
-	// 	var wholeData = data;
-	// 	data = data.payload;
-	// 	console.log("***************start ChangeColor****************")
-	// 	for(var i in data){
-	// 		d3.select("#" + data[i]).attr("fill","red")
-	// 	}
-	// draw graph
-
 	setInitReadyData:function () {
 		var self = this;
 	    self.coauthorGraph = readyData.coauthorGraph;
