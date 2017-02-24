@@ -141,7 +141,7 @@ var force_layout = {
   highlightNodeArr: function (data) {
     
     var self = this;
-    d3.selectAll('circle').style("fill", "rgb(55,184,222)");
+    d3.selectAll('circle').style("fill", window.Config.nodeColor);
     var wholeData = data;
     data = data.payload.nodeArr
     console.log("receive photo");
@@ -154,15 +154,40 @@ var force_layout = {
   },
   nodeArrAnimationHandler: function (data) {
     var self = this;
-    d3.selectAll('circle').style("fill", "steelblue");
+    d3.selectAll('circle').style("fill", window.Config.nodeColor);
     var wholeData = data;
     data = data.payload;
     console.log("receive photo");
-    console.log(data);
-    for (var i in data) {
-      console.log('circle id', data[i])
-      d3.select("#node" + data[i]).style("fill", "red")
+    var borderArray = {}
+    borderArray.cx=[]
+    borderArray.cy=[]
+    var rMax = 0
+    console.log(data)
+    d3.select("#rectBorder").remove()
+    for(var i in data){
+      console.log('circle id', data[i] )
+      var selectionNode = d3.select("#node" + data[i])
+      borderArray.cx.push(selectionNode.attr("cx"))
+      borderArray.cy.push(selectionNode.attr("cy"))
+      rMax = Math.max(rMax, selectionNode.attr("r"))
+      selectionNode.style("fill", "red")
     }
+    var selectionBorder={}
+    selectionBorder.left = d3.min(borderArray.cx)
+    selectionBorder.right = d3.max(borderArray.cx)
+    selectionBorder.top = d3.min(borderArray.cy)
+    selectionBorder.bottom = d3.max(borderArray.cy)
+    d3.select("svg").append("rect")
+      .attr("id", "rectBorder")
+      .attr("x",selectionBorder.left - rMax)
+      .attr("y",selectionBorder.top - rMax)
+      .attr("width",selectionBorder.right - selectionBorder.left + 2*rMax)
+      .attr("height",selectionBorder.bottom - selectionBorder.top + 2*rMax)
+      .attr("stroke","#ccc")
+      .attr("fill", 'none')
+      .attr("stroke-width", "2px")
+      .attr("opacity",0.7)
+    
     // my function -- change color red
   },
   // data = data.data;
@@ -271,7 +296,7 @@ var force_layout = {
     // nodes79links292
     //nodes5238links17953
     // nodes
-    d3.json("data/nodes1012links3438.json", function (error, graph) {
+    d3.json("data/nodes79links292.json", function (error, graph) {
       
       if (error) throw error;
       self.coauthorGraph = graph.coauthorGraph
@@ -319,7 +344,7 @@ var force_layout = {
         .attr("id", function (d) {
           return 'node' + d.nameid
         })
-        .attr("fill", function (d) { return 'rgb(55,184,222)'; })
+        .attr("fill", function (d) { return window.Config.nodeColor; })
         .call(d3.drag()
           .on("start", dragstarted)
           .on("drag", dragged)

@@ -7,4 +7,5 @@ window.Config = {
       fixed: false,
       showLabel: false,
       linkWidth: 1,
+      nodeColor: 'steelblue'
 };
