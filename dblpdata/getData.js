@@ -65,4 +65,4 @@ searchAuthorByNameArr = function(value){
 // , 'Xin Zhang','Jiawan Zhang', 'Hans-Peter Seidel', 'Daniel A. Keim', 'Shixia Liu','Tobias H\u00f6llerer', 'Huamin Qu', 'Robert B. Ross', 'Han-Wei Shen', 'Jian Huang','Ke Zhang'
 // ,'Bernhard Preim','Tzi-cker Chiueh', 'Baining Guo','Liang Chen', 'Dhabaleswar K. Panda','Ke Zhang','Yifan Hu' ]
 initSearchName = ['Jie Liang','Huijing Zhao','Junping Zhang','Baoquan Chen', 'Xiaoru Yuan','Jiawan Zhang','Yang Shi','Huamin Qu','Chen Yang','Bedrich Benes','Daniel Cohen-Or','Yizhou Yu','Hongbin Zha','Jizhou Sun','Xiaochun Cao','Qing Chen','Tianyu Wang','Albert C. S. Chung','Jon Atle Gulla','Vijayan Sugumaran','Peter Herrmann'
-,'Heiko Krumm','Stephen T. C. Wong','Ghassan Beydoun','Pau-Choo Chung','Gerald E. Sobelman','Lin Shi','Mingshu Li','Li Ruan','Quang Vinh Nguyen','Tom Hintz','Lu Lu','Xiaoli Zhang']
+,'Heiko Krumm','Stephen T. C. Wong','Ghassan Beydoun','Pau-Choo Chung','Gerald E. Sobelman','Lin Shi','Mingshu Li','Li Ruan','Quang Vinh Nguyen','Tom Hintz','Lu Lu','Xiaoli Zhang','Bhaskar DasGupta','Yongsheng Gao','Jizheng Xu','Yong Peng','Si Wu','Mahmoud Al-Qutayri','Min Lu','Yadong Wu','Jie Cao']
