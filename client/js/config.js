@@ -7,5 +7,6 @@ window.Config = {
       fixed: false,
       showLabel: false,
       linkWidth: 1,
-      nodeColor: 'steelblue'
+      nodeColor: 'steelblue',
+      isBundling: 'true'
 };
