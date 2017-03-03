@@ -243,7 +243,7 @@ var force_layout = {
                                 }
                             }
                         } else {
-                            return linkDistance
+                            return linkDistance * 2
                         }
                     } else {
                         if ((sourceType === 'root' && sourceDegree > 5) || (targetType === 'root' && targetDegree > 5)) {
@@ -277,7 +277,7 @@ var force_layout = {
                         }
                     }
                     if (d.type === 'leaf') {
-                        return charge
+                        return charge * 2
                     }
                 }
                 return charge
@@ -289,7 +289,7 @@ var force_layout = {
         // nodes79links292
         //nodes5238links17953
         // nodes
-        d3.json("data/nodes5238links17953.json", function(error, graph) {
+        d3.json("data/nodes79links292.json", function(error, graph) {
 
             if (error) throw error;
             self.coauthorGraph = graph.coauthorGraph
@@ -392,7 +392,7 @@ var force_layout = {
                         return d.y;
                     })
 
-                if (simulation.alpha() < 0.3) {
+                if (simulation.alpha() < 0.1) {
                     //console.log(minW, maxW, minH, maxH)
                     if (minW < padding || maxW > self.width - padding) {
                         //console.log(minW, minH, maxH, maxW)
@@ -442,16 +442,67 @@ var force_layout = {
                         $("#load").css('display', 'none');
                         $("#graph").css('display', 'block');
                         simulation.restart()
-
                     }
+                    // 扩展点的分布
+                    var n_totalW = maxW - minW;
+                    if(n_totalW < (self.width - 2 * padding) * 0.9){ 
+                        node
+                            .attr('cx',function(d) {
+                                d.x = (d.x - minW - (maxW - minW) / 2) / (maxW - minW) * (self.width - padding * 2) * 0.9 + self.width / 2
+                                return d.x
+                        })
+                        link
+                            .attr("x1", function(d) {
+                                return d.source.x;
+                            })
+                            .attr("y1", function(d) {
+                                return d.source.y;
+                            })
+                            .attr("x2", function(d) {
+                                return d.target.x;
+                            })
+                            .attr("y2", function(d) {
+                                return d.target.y;
+                            });
+                        $("#load").css('display', 'none');
+                        $("#graph").css('display', 'block');
+                        simulation.restart()
+                     
+                    }
+                    var n_totalH = maxH - minH;
+                    if(n_totalH < (self.height - 2 * padding) * 0.9){ 
+                        node
+                            .attr('cy',function(d) {
+                                d.y = (d.y - minH - (maxH - minH) / 2) / (maxH - minH) * (self.height - padding * 2) * 0.9 + self.height / 2
+                                return d.y
+                        })
+                        link
+                            .attr("x1", function(d) {
+                                return d.source.x;
+                            })
+                            .attr("y1", function(d) {
+                                return d.source.y;
+                            })
+                            .attr("x2", function(d) {
+                                return d.target.x;
+                            })
+                            .attr("y2", function(d) {
+                                return d.target.y;
+                            });
+                        $("#load").css('display', 'none');
+                        $("#graph").css('display', 'block');
+                        simulation.restart()
+                     
+                    }
+                   
                 }
-                if (simulation.alpha() < 0.1) {
+                if (simulation.alpha() < 0.01) {
                     $("#load").css('display', 'none');
                     $("#graph").css('display', 'block');
-                    simulation.stop()
-                    if (window.Config.isBundling) {
-                        self.edgeBundling()
-                    }
+                  //  simulation.stop()
+                    // if (window.Config.isBundling) {
+                    //     self.edgeBundling()
+                    // }
 
                 }
             }
@@ -485,6 +536,7 @@ var force_layout = {
             })
 
         console.log(results)
+
         var svg = self.svg
         svg.selectAll('.links').remove()
         svg.selectAll('.nodes').remove()
@@ -493,7 +545,7 @@ var force_layout = {
             svg.append("path")
                 .attr("d", d3line(edge_subpoint_data))
                 .attr("stroke-width", function(d) {
-                    return self.linkWidth;
+                    return window.Config.linkWidth;
                 })
                 .attr("stroke", "#999")
                 .attr("stroke-opacity", 0.6)
@@ -527,7 +579,8 @@ var force_layout = {
                 .on("end", self.dragended));
     },
     dragstarted: function(d) {
-        if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+        console.log("start drag")
+       
         d.fx = d.x;
         d.fy = d.y;
     },
@@ -538,14 +591,14 @@ var force_layout = {
     },
 
     dragended: function(d) {
-        if (!d3.event.active) simulation.alphaTarget(0);
+        
         d.fx = null;
         d.fy = null;
     }
 }
 
 function calcRadius(paperNum) {
-    return Math.pow(paperNum, 0.3) + 3
+    return Math.pow(paperNum, 0.4)+10
 }
 //function for websocket to communicate with phone
 function send_state_update(ws, identity, name, data) {
