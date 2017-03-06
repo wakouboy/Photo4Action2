@@ -54,6 +54,12 @@ var force_layout = {
                     case 'HighlightNodeArr':
                         self.highlightNodeArr(state.data);
                         break;
+                    case 'ExpandNode':
+                        self.expandNodeHandler(state.data);
+                        break;
+                    case 'ShrinkNode':
+                        self.shrinkNodeHandler(state.data);
+                        break;
                 }
             }
         });
@@ -100,11 +106,13 @@ var force_layout = {
             var r = calcRadius(d_node.paperNum)
             var id = d_node.nameid;
             var name = d_node.name;
+            var type = d_node.type
             obj.push(x);
             obj.push(y);
             obj.push(r);
             obj.push(id);
             obj.push(name);
+            obj.push(type)
             resultData.nodes.push(obj);
         });
 
@@ -190,17 +198,13 @@ var force_layout = {
             .attr("fill", 'none')
             .attr("stroke-width", "2px")
             .attr("opacity", 0.7)
-
-        // my function -- change color red
     },
-    // data = data.data;
-    //  var wholeData = data;
-    //  data = data.payload;
-    //  console.log("***************start ChangeColor****************")
-    //  for(var i in data){
-    //    d3.select("#" + data[i]).attr("fill","red")
-    //  }
-    // draw graph
+    expandNodeHandler: function(data) {
+
+    },
+    shrinkNodeHandler: function(data) {
+
+    },
 
     setInitReadyData: function() {
         var self = this;
@@ -232,25 +236,25 @@ var force_layout = {
                         if (sourceType === 'root') {
                             if (num > 30) {
                                 if (num > 50) {
-                                    return linkDistance * 3.0
+                                    return linkDistance * 6
                                 } else {
-                                    return linkDistance * 2.8
+                                    return linkDistance * 4
                                 }
                             } else {
                                 if (num > 20) {
-                                    return linkDistance * 2.5
+                                    return linkDistance * 3
                                 } else {
-                                    return linkDistance * 2.1
+                                    return linkDistance * 2
                                 }
                             }
                         } else {
-                            return linkDistance * 2
+                            return linkDistance * 5
                         }
                     } else {
                         if ((sourceType === 'root' && sourceDegree > 5) || (targetType === 'root' && targetDegree > 5)) {
-                            return linkDistance * 1.5
+                            return linkDistance * 5
                         } else {
-                            return linkDistance * 1.2
+                            return linkDistance * 4
                         }
                     }
 
@@ -278,7 +282,7 @@ var force_layout = {
                         }
                     }
                     if (d.type === 'leaf') {
-                        return charge * 2
+                        return charge * 3
                     }
                 }
                 return charge
@@ -290,7 +294,7 @@ var force_layout = {
         // nodes79links292
         //nodes5238links17953
         // nodes
-        d3.json("data/nodes79links292.json", function(error, graph) {
+        d3.json("data/nodes527links1705.json", function(error, graph) {
 
             if (error) throw error;
             self.coauthorGraph = graph.coauthorGraph
@@ -300,16 +304,59 @@ var force_layout = {
                 var tmpId = nodesData[i].id
                 nodesData[i].id = nodesData[i].index
                 nodesData[i]['nameid'] = tmpId
+                nodesData[i]['expand'] = false // true表示可以expand  false表示可以shrink
+                nodesData[i]['neighbor'] = [] // 记录邻居节点
+                nodesData[i]['neighborLinksIndex'] = [] // 记录邻居边的id
+                nodesData[i]['nodesToExpand'] = [] // 表示需要扩展出的节点的id
+                nodesData[i]['nodesToShrink'] = [] // 表示需要收缩回的节点的id
+                
             }
 
             graph.coauthorGraph.nodes = nodesData
             self.coauthorGraph = graph.coauthorGraph
             var linksData = graph.coauthorGraph.links
             self.linksData = linksData
+
+            // 对边进行处理，求出每个点的邻居
+            for (var i in linksData) {
+                nodesData[linksData[i].target].neighbor.push(linksData[i].source)
+                nodesData[linksData[i].target].neighborLinksIndex[linksData[i].source] = i
+
+                nodesData[linksData[i].source].neighbor.push(linksData[i].target)
+                nodesData[linksData[i].source].neighborLinksIndex[linksData[i].target] = i
+            }
+
+            var initNodesData = []
+            var initLinksData = []
+            // 设置初始节点为Xiaoru Yuan及其邻居节点，设置初始数据集
+            // 先添加所有节点
+            initNodesData.push(nodesData[0]) // 添加中心节点
+            for (var i in nodesData[0].neighbor){
+                initNodesData.push(nodesData[nodesData[0].neighbor[i]]) // 添加邻居节点       
+            }
+            // 对每个节点来添加边
+            for (var i in initNodesData){
+                for (var j in initNodesData[i].neighbor){ // 查看当前集合中节点的每一个邻居节点
+                    var thisNeighborId = initNodesData[i].neighbor[j] // 获得这一邻居节点的id
+                    if($.inArray(nodesData[thisNeighborId], initNodesData) != -1) { // 说明这个邻居在现在点集中,需要增加边
+                        var thisLinkId = initNodesData[i].neighborLinksIndex[thisNeighborId] // 要增加的这条边的id
+                        if($.inArray(linksData[thisLinkId], initLinksData) == -1) {// 没添加过这条边的时候，添加
+                            initLinksData.push(linksData[thisLinkId])
+                        }
+                    }else{ // 说明这个邻居不在现在的点集中，即当前节点还能继续扩展
+                        // ***考虑需要把nodesData中的点也进行修改
+                        initNodesData[i].expand = true
+                        initNodesData[i].nodesToExpand.push(thisNeighborId)
+                    }
+                }
+            }
+            console.log(initNodesData)
+            console.log(initLinksData)
+       
             var link = svg.append("g")
                 .attr("class", "links")
                 .selectAll("line")
-                .data(linksData)
+                .data(initLinksData)
                 .enter()
                 .append("line")
                 .attr("stroke-width", function(d) {
@@ -330,7 +377,7 @@ var force_layout = {
             var node = svg.append("g")
                 .attr("class", "nodes")
                 .selectAll("circle")
-                .data(nodesData)
+                .data(initNodesData)
                 .enter().append("circle")
                 .attr('class', 'circles')
                 .attr("r", function(d) {
@@ -342,11 +389,28 @@ var force_layout = {
                 .attr("fill", function(d) {
                     return window.Config.nodeColor;
                 })
+                .attr('stroke', function(d) {
+                    if(d.expand == true)
+                        return "#44cef6"
+                    else
+                        return "none"
+                })
+                .attr('stroke-width', "5px")
                 .call(d3.drag()
                     .on("start", self.dragstarted)
                     .on("drag", self.dragged)
                     .on("end", self.dragended));
-
+            var node_name = svg.selectAll("name_text")
+                .attr("class", "name_text")
+                .data(nodesData)
+                .enter().append("text")
+                .style("fill","black")
+                .attr("dx", 5)
+                .attr("dy", 5)
+                .text(function(d){
+                    if(d.type === "root")
+                        return d.name
+                }) 
             node.append("title")
                 .text(function(d) {
                     return d.name + ' ' + 'PaperNum ' + d.paperNum;
@@ -392,7 +456,13 @@ var force_layout = {
                         minH = Math.min(minH, d.y);
                         maxH = Math.max(maxH, d.y);
                         return d.y;
+                    });
+                node_name.attr("x",function(d){
+                        return d.x + 10;
                     })
+                    .attr("y",function(d){
+                        return d.y - 10;
+                    });
 
                 if (simulation.alpha() < 0.01) {
                     //console.log(minW, maxW, minH, maxH)
@@ -402,8 +472,12 @@ var force_layout = {
                             d.x = (d.x - minW - (maxW - minW) / 2) / (maxW - minW) * (self.width - padding * 2) + self.width / 2
                                 //console.log(d.x)
                             return d.x
-                        })
+                            })
 
+                        node_name
+                            .attr('x', function(d) {
+                                return d.x + 10
+                            })
                         link
                             .attr("x1", function(d) {
                                 return d.source.x;
@@ -427,6 +501,10 @@ var force_layout = {
                             .attr('cy', function(d) {
                                 d.y = (d.y - minH - (maxH - minH) / 2) / (maxH - minH) * (self.height - padding * 2) + self.height / 2
                                 return d.y
+                            })
+                        node_name
+                            .attr('y', function(d) {
+                                return d.y - 10
                             })
                         link
                             .attr("x1", function(d) {
@@ -453,6 +531,11 @@ var force_layout = {
                                 d.x = (d.x - minW - (maxW - minW) / 2) / (maxW - minW) * (self.width - padding * 2) * 0.9 + self.width / 2
                                 return d.x
                             })
+                        node_name
+                            .attr('x', function(d) {
+                                return d.x + 10
+                            })
+
                         link
                             .attr("x1", function(d) {
                                 return d.source.x;
@@ -477,6 +560,10 @@ var force_layout = {
                             .attr('cy', function(d) {
                                 d.y = (d.y - minH - (maxH - minH) / 2) / (maxH - minH) * (self.height - padding * 2) * 0.9 + self.height / 2
                                 return d.y
+                            })
+                        node_name
+                            .attr('y', function(d) {
+                                return d.y - 10
                             })
                         link
                             .attr("x1", function(d) {
