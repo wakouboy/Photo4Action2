@@ -1,1 +1,0 @@
-force_layout.init();
