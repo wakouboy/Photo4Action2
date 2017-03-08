@@ -1,7 +1,7 @@
 window.Config = {
-      linkDistance: 50,
+      linkDistance: 20,
       linkStrength: 0.45,
-      charge: -1000,
+      charge: -100,
       gravity: 0.1,
       alpha: 0.1,
       fixed: false,

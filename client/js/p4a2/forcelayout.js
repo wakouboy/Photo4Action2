@@ -316,6 +316,8 @@ var force_layout = {
             self.coauthorGraph = graph.coauthorGraph
             var linksData = graph.coauthorGraph.links
             self.linksData = linksData
+            console.log(nodesData)
+            console.log(linksData)
 
             // 对边进行处理，求出每个点的邻居
             for (var i in linksData) {
@@ -343,15 +345,14 @@ var force_layout = {
                         if($.inArray(linksData[thisLinkId], initLinksData) == -1) {// 没添加过这条边的时候，添加
                             initLinksData.push(linksData[thisLinkId])
                         }
-                    }else{ // 说明这个邻居不在现在的点集中，即当前节点还能继续扩展
+                    } else { // 说明这个邻居不在现在的点集中，即当前节点还能继续扩展
                         // ***考虑需要把nodesData中的点也进行修改
                         initNodesData[i].expand = true
-                        initNodesData[i].nodesToExpand.push(thisNeighborId)
+                        initNodesData[i].nodesToExpand.push(thisNeighborId) // 记录这点可以扩展的邻居节点
                     }
                 }
             }
-            console.log(initNodesData)
-            console.log(initLinksData)
+
        
             var link = svg.append("g")
                 .attr("class", "links")
@@ -402,7 +403,7 @@ var force_layout = {
                     .on("end", self.dragended));
             var node_name = svg.selectAll("name_text")
                 .attr("class", "name_text")
-                .data(nodesData)
+                .data(initNodesData)
                 .enter().append("text")
                 .style("fill","black")
                 .attr("dx", 5)
@@ -417,15 +418,38 @@ var force_layout = {
                 });
 
             simulation
-                .nodes(graph.coauthorGraph.nodes)
+                .nodes(initNodesData)
                 .on("tick", ticked)
 
             simulation.force("link")
-                .links(graph.coauthorGraph.links)
+                .links(initLinksData)
 
             var padding = 50
             window.simulation = simulation
 
+            var extendTimes;
+            console.log(initNodesData.length/100)
+            switch (Math.floor(initNodesData.length / 100)){
+                case 0:
+                    extendTimes = 0.5
+                    break;
+                case 1:
+                    extendTimes = 0.6
+                    break;
+                case 2:
+                    extendTimes = 0.68
+                    break;
+                case 3:
+                    extendTimes = 0.75
+                    break;
+                case 4:
+                    extendTimes = 0.8
+                    break;
+                case 5:
+                    extendTimes = 0.9
+                    break;
+            }
+            console.log(extendTimes)
             function ticked() {
 
                 var minH = 10000000
@@ -523,12 +547,13 @@ var force_layout = {
                         $("#graph").css('display', 'block');
                         simulation.restart()
                     }
-                    // 扩展点的分布
+                    
+                    // 扩展点
                     var n_totalW = maxW - minW;
-                    if (n_totalW < (self.width - 2 * padding) * 0.9) {
+                    if (n_totalW < (self.width - 2 * padding) * extendTimes) {
                         node
                             .attr('cx', function(d) {
-                                d.x = (d.x - minW - (maxW - minW) / 2) / (maxW - minW) * (self.width - padding * 2) * 0.9 + self.width / 2
+                                d.x = (d.x - minW - (maxW - minW) / 2) / (maxW - minW) * (self.width - padding * 2) * extendTimes + self.width / 2
                                 return d.x
                             })
                         node_name
@@ -555,10 +580,10 @@ var force_layout = {
 
                     }
                     var n_totalH = maxH - minH;
-                    if (n_totalH < (self.height - 2 * padding) * 0.9) {
+                    if (n_totalH < (self.height - 2 * padding) * extendTimes) {
                         node
                             .attr('cy', function(d) {
-                                d.y = (d.y - minH - (maxH - minH) / 2) / (maxH - minH) * (self.height - padding * 2) * 0.9 + self.height / 2
+                                d.y = (d.y - minH - (maxH - minH) / 2) / (maxH - minH) * (self.height - padding * 2) * extendTimes + self.height / 2
                                 return d.y
                             })
                         node_name
@@ -588,11 +613,6 @@ var force_layout = {
                 if (simulation.alpha() < 0.01) {
                     $("#load").css('display', 'none');
                     $("#graph").css('display', 'block');
-                    //  simulation.stop()
-                    // if (window.Config.isBundling) {
-                    //     self.edgeBundling()
-                    // }
-
                 }
             }
 
