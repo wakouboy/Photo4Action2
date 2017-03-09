@@ -6,7 +6,7 @@ var force_layout = {
         // communicator
         self.addCommunicator();
 
-        self.setInitReadyData();
+      // self.setInitReadyData();
         self.forceLayout();
     },
     // communicator

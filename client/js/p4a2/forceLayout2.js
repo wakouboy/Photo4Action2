@@ -211,7 +211,7 @@ force_layout.prototype.draw = function() {
 
 force_layout.prototype.calGraph = function() {
     var self = this;
-    var graph = self.graphData,
+    var graph = self.initGraphData,
         viewWidth = self.viewWidth,
         viewHeight = self.viewHeight,
         nodeR = self.nodeR,
@@ -220,6 +220,7 @@ force_layout.prototype.calGraph = function() {
         linkDistance = self.linkDistance,
         linkStrength = self.linkStrength,
         nodeStrength = self.nodeStrength;
+
 
     self.f_center.x(viewWidth / 2).y(viewHeight / 2);
     self.f_collide.radius(nodeR * 2).strength(collideStrength);
@@ -232,6 +233,8 @@ force_layout.prototype.calGraph = function() {
         var sourceDegree = d.source.degree
         var targetDegree = d.target.degree
         var num = Math.min(sourceDegree, targetDegree)
+        //console.log(linkDistance)
+
         if (sourceType === targetType) {
             if (sourceType === 'root') {
                 if (num > 30) {
@@ -257,11 +260,13 @@ force_layout.prototype.calGraph = function() {
                 return linkDistance * 4
             }
         }
-        return linkDistance * 1
+        return 10
     }).strength(linkStrength)
 
     self.f_manyBody.strength(function(d) {
-        var charge = self.nodeStrength
+        //console.log(self.nodeStrength)
+        // return nodeStrength
+        var charge = nodeStrength
         if (d.type) {
             if (d.type === 'root') {
                 if (d.degree < 10) {
@@ -287,17 +292,20 @@ force_layout.prototype.calGraph = function() {
         return charge * 1
     })
 
-    // console.log(self.f_link)
-    // console.log(self.f_manyBody)
+    console.log(self.f_link)
+    console.log(self.f_manyBody)
+
 
     self.f_simulation.force('charge', self.f_manyBody).force('center', self.f_center)
-        .force('collide', self.f_collide);
+        .force('collide', self.f_collide)
+        .force('X', d3.forceX().x(0).strength(0.02))
+        .force('Y', d3.forceY().y(0).strength(0.2))
 
     console.log(self.f_simulation)
     self.f_simulation.nodes(graph.nodes).force('link', self.f_link).on('tick', tick);
 
     function tick() {
-        console.log('tick?')
+        //console.log('tick?')
         var extendTimes = self.extendTimes
         var panelSelectcor = self.panelSelectcor;
         var node = d3.select(panelSelectcor).selectAll('.node');
@@ -345,14 +353,6 @@ force_layout.prototype.calGraph = function() {
             .attr("y", function(d) {
                 return d.y;
             });
-
-        // node.attr("transform", function(d) {
-        //     minW = Math.min(minW, d.x);
-        //     maxW = Math.max(maxW, d.x);
-        //     minH = Math.min(minH, d.y);
-        //     maxH = Math.max(maxH, d.y);
-        //     return "translate(" + d.x + "," + d.y + ")";
-        // });
         if (simulation.alpha() < 0.01) {
             //console.log(minW, maxW, minH, maxH)
             if (minW < 0 || maxW > viewWidth) {
@@ -478,6 +478,7 @@ force_layout.prototype.calGraph = function() {
 
 force_layout.prototype.updateGraph = function(attr) {
     var self = this;
+    console.log(attr)
     if (attr == "nodeSize") {
         d3.selectAll('.node').attr('r', self.nodeSize)
 
@@ -496,4 +497,5 @@ force_layout.prototype.updateGraph = function(attr) {
     }
 
 }
+
 

@@ -16,14 +16,14 @@ var sliderBarConfig = {
     'linkStrength': {
         'barSelector': '#linkStrengthBar',
         'valSelector': '#linkStrengthValue',
-        'range': [0, 100, 0.3],
+        'range': [0, 100, 0.45],
         'ratio': 100,
         'save': 'linkStrength'
     },
     'nodeStrength': {
         'barSelector': '#nodeStrengthBar',
         'valSelector': '#nodeStrengthValue',
-        'range': [-1000, 100, -30],
+        'range': [-1000, 100, -100],
         'ratio': 1,
         'save': 'nodeStrength'
     },
@@ -51,6 +51,7 @@ var sliderBarConfig = {
 };
 
 $(document).ready(function() {
+    //force_layout.init()
     var forceLayout = new force_layout("#graph");
     window.forceLayout = forceLayout;
     // fileUpload = new file_upload("loadingDataButton");
@@ -60,6 +61,7 @@ $(document).ready(function() {
         if (error) throw error;
 
         forceLayout.setData(graph);
+
     });
     setBar();
     menuClick();
