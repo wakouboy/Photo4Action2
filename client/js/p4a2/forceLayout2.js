@@ -44,8 +44,8 @@ force_layout.prototype.setData = function(v_data) {
     var self = this;
     self.dataProcess(v_data);
     console.log(v_data)
-    self.graphData = v_data.coauthorGraph;
-    self.initGraphData = v_data.initGraph;
+    self.graphData = v_data.coauthorGraph; // 全局的graphData
+    self.initGraphData = v_data.initGraph; // 初始的graphData
     self.handleGraph();
 }
 
@@ -56,6 +56,7 @@ force_layout.prototype.dataProcess = function(graph) {
         nodesData[i].id = nodesData[i].index
         nodesData[i]['nameid'] = tmpId
         nodesData[i]['expand'] = false // true表示可以expand  false表示可以shrink
+        nodesData[i]['shrink'] = false // true表示可以shrink false表示不可以shrink
         nodesData[i]['neighbor'] = [] // 记录邻居节点
         nodesData[i]['neighborLinksIndex'] = [] // 记录邻居边的id
         nodesData[i]['nodesToExpand'] = [] // 表示需要扩展出的节点的id
@@ -159,15 +160,25 @@ force_layout.prototype.draw = function() {
             return 'node' + d.nameid
         })
         .attr("fill", function(d) {
-            return window.Config.nodeColor;
+            if(d.expand == true)
+                return window.Config.nodeColorExpand;
+            else
+                return window.Config.nodeColorNormal;
         })
         .attr('stroke', function(d) {
-            if(d.expand)
-                return window.Config.strokeColor;
+            if(d.expand == true)
+                return window.Config.strokeColorExpand
             else
                 return "none"
         })
         .attr('stroke-width', window.Config.strokeWidth)
+        .on("click", function (d) {
+            console.log("是否可扩展", d.expand)
+            console.log("可以扩展出的节点id", d.nodesToExpand) 
+            if(d.expand == true) {
+                window.expandNodeWeb.addData(d)     
+            }                 
+        })
         .call(d3.drag()
         .on("start", dragstarted)
         .on("drag", dragged)
@@ -298,7 +309,7 @@ force_layout.prototype.calGraph = function() {
 
     self.f_simulation.force('charge', self.f_manyBody).force('center', self.f_center)
         .force('collide', self.f_collide)
-        .force('X', d3.forceX().x(0).strength(0.02))
+        .force('X', d3.forceX().x(0).strength(0.05))
         .force('Y', d3.forceY().y(0).strength(0.2))
 
     console.log(self.f_simulation)
@@ -485,7 +496,6 @@ force_layout.prototype.updateGraph = function(attr) {
     }
     if (attr == "linkWidth") {
         d3.selectAll('.link').attr('stroke-width', self.linkWidth)
-
     }
     self.calGraph();
     if (self.f_simulation.alpha() < 0.001) {
@@ -496,6 +506,19 @@ force_layout.prototype.updateGraph = function(attr) {
         self.f_simulation.restart();
     }
 
+}
+force_layout.prototype.update = function() {
+    var self = this;
+    console.log("重新画图")
+    self.draw()
+    self.calGraph();
+    if (self.f_simulation.alpha() < 0.001) {
+        self.f_simulation.alpha(0.4);
+        self.f_simulation.restart();
+    } else {
+        self.f_simulation.alpha(0.4);
+        self.f_simulation.restart();
+    }
 }
 
 

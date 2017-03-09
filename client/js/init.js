@@ -69,6 +69,7 @@ $(document).ready(function() {
     // iconEvent();
     controlPanelTitleEvent();
     window.messageHandler = new message_handler();
+    window.expandNodeWeb = new expand_node();
 })
 
 function setBar() {

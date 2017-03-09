@@ -138,12 +138,17 @@ message_handler.prototype.calGraphLayoutResult = function() {
 
 message_handler.prototype.highlightNodeArr = function(data) {
 
-    d3.selectAll('circle').style("fill", window.Config.nodeColor);
+     d3.selectAll('circle').style("fill", function(d) {
+        if(d.expand == true)
+            return window.Config.nodeColorExpand;
+        else
+            return window.Config.nodeColorNormal
+    });
     var wholeData = data;
     data = data.payload.nodeArr
     for (var i in data) {
         console.log('circle id', data[i])
-        d3.select("#node" + data[i]).style("fill", "red")
+        d3.select("#node" + data[i]).style("fill", window.Config.nodeColorSelect)
     }
     // my function -- change color red
 }
@@ -151,7 +156,12 @@ message_handler.prototype.highlightNodeArr = function(data) {
 
 message_handler.prototype.nodeArrAnimationHandler = function(data) {
     var self = this;
-    d3.selectAll('circle').style("fill", window.Config.nodeColor);
+    d3.selectAll('circle').style("fill", function(d) {
+            if(d.expand == true)
+                return window.Config.nodeColorExpand;
+            else
+                return window.Config.nodeColorNormal
+        });
     var wholeData = data;
     data = data.payload;
     console.log("receive photo");
@@ -167,7 +177,7 @@ message_handler.prototype.nodeArrAnimationHandler = function(data) {
         borderArray.cx.push(+selectionNode.attr("cx"))
         borderArray.cy.push(+selectionNode.attr("cy"))
         rMax = Math.max(rMax, +selectionNode.attr("r"))
-        selectionNode.style("fill", "red")
+        selectionNode.style("fill", window.Config.nodeColorSelect)
     }
     var selectionBorder = {}
     selectionBorder.left = d3.min(borderArray.cx)
@@ -182,7 +192,7 @@ message_handler.prototype.nodeArrAnimationHandler = function(data) {
         .attr("y", selectionBorder.top - rMax)
         .attr("width", selectionBorder.right - selectionBorder.left + 2 * rMax)
         .attr("height", selectionBorder.bottom - selectionBorder.top + 2 * rMax)
-        .attr("stroke", "red")
+        .attr("stroke", window.Config.strokeColorSelect)
         .attr("fill", 'none')
         .attr("stroke-width", "2px")
         .attr("opacity", 0.7)
