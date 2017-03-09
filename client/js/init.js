@@ -56,7 +56,7 @@ $(document).ready(function() {
     // fileUpload = new file_upload("loadingDataButton");
 
 
-    d3.json('data/nodes79links292.json', function(error, graph) {
+    d3.json('data/nodes527links1705.json', function(error, graph) {
         if (error) throw error;
 
         forceLayout.setData(graph);

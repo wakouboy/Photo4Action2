@@ -8,5 +8,7 @@ window.Config = {
       showLabel: false,
       linkWidth: 3,
       nodeColor: 'steelblue',
-      isBundling: 'true'
+      isBundling: 'true',
+      strokeWidth: '3px',
+      strokeColor: '#44cef6'
 };

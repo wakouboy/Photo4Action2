@@ -37,6 +37,7 @@ force_layout.prototype.init = function() {
     self.linkView = linkView;
     self.nodeView = nodeView;
     self.textView = textView;
+
 }
 
 force_layout.prototype.setData = function(v_data) {
@@ -44,6 +45,7 @@ force_layout.prototype.setData = function(v_data) {
     self.dataProcess(v_data);
     console.log(v_data)
     self.graphData = v_data.coauthorGraph;
+    self.initGraphData = v_data.initGraph;
     self.handleGraph();
 }
 
@@ -96,7 +98,9 @@ force_layout.prototype.dataProcess = function(graph) {
         }
     }
 
-
+    graph.initGraph = {}
+    graph.initGraph.nodes = initNodesData
+    graph.initGraph.links = initLinksData
     graph.coauthorGraph.nodes = nodesData
     graph.coauthorGraph.links = linksData
     var extendTimes;
@@ -139,14 +143,35 @@ force_layout.prototype.draw = function() {
     var nodeView = self.nodeView,
         linkView = self.linkView,
         textView = self.textView,
-        graph = self.graphData,
+        graph = self.initGraphData,
         nodeSize = self.nodeSize,
-        linkWidth = self.linkWidth;
+        linkWidth = self.linkWidth,
+        f_simulation = self.f_simulation;
     var nodes = nodeView.selectAll('.node').data(graph['nodes']);
-    var newNodes= nodes.enter().append('circle').attr('class', 'node');
-
+    var newNodes = nodes.enter();
+    newNodes.append('circle').attr('class', 'node').append('title').text(function(d) {return d.name});
     nodes.exit().remove();
-    nodeView.selectAll('.node').attr('cx', 0).attr('cy', 0).attr('r', nodeSize);
+    nodeView.selectAll('.node').attr('cx', 0).attr('cy', 0)
+        .attr('r', function(d){
+            return nodeSize/6* Math.pow(d.paperNum, 0.4) + 3;
+        })
+        .attr("id", function(d) {
+            return 'node' + d.nameid
+        })
+        .attr("fill", function(d) {
+            return window.Config.nodeColor;
+        })
+        .attr('stroke', function(d) {
+            if(d.expand)
+                return window.Config.strokeColor;
+            else
+                return "none"
+        })
+        .attr('stroke-width', window.Config.strokeWidth)
+        .call(d3.drag()
+        .on("start", dragstarted)
+        .on("drag", dragged)
+        .on("end", dragended));
 
     var links = linkView.selectAll('.link').data(graph['links']);
     var newLinks = links.enter().append('line').attr('class', 'link').attr('stroke-width', linkWidth)
@@ -156,14 +181,30 @@ force_layout.prototype.draw = function() {
     });
 
     var texts = textView.selectAll('.text').data(graph['nodes']);
-
     var newTexts = texts.enter().append('text').attr('class', 'text')
     texts.exit().remove();
-    textView.selectAll('.text').text(function(d){return d.name;}).attr('dx', 12).attr('dy', '.35em')
-            .attr('display', function(d) {
-                if(d.type ==='root') return 'block';
-                else return 'none';
-            })
+    textView.selectAll('.text').text(function(d) {
+            return d.name;
+        }).attr('dx', 12).attr('dy', '.35em')
+        .attr('display', function(d) {
+            if (d.type === 'root') return 'block';
+            else return 'none';
+        })
+
+    function dragstarted(d) {
+        if (!d3.event.active) f_simulation.alphaTarget(0.01).restart();
+        d.fx = d.x;
+        d.fy = d.y;
+    }
+    function dragged(d) {
+        d.fx = d3.event.x;
+        d.fy = d3.event.y;
+    }
+    function dragended(d) {
+        if (!d3.event.active) f_simulation.alphaTarget(0);
+        d.fx = null;
+        d.fy = null;
+    }
 
 
 }
@@ -224,7 +265,7 @@ force_layout.prototype.calGraph = function() {
         if (d.type) {
             if (d.type === 'root') {
                 if (d.degree < 10) {
-                    return charge*1
+                    return charge * 1
                 } else if (d.degree < 20) {
                     return charge * 2
                 } else if (d.degree < 30) {
@@ -297,7 +338,7 @@ force_layout.prototype.calGraph = function() {
                 return d.y;
             });
 
-         text
+        text
             .attr("x", function(d) {
                 return d.x;
             })
@@ -455,3 +496,4 @@ force_layout.prototype.updateGraph = function(attr) {
     }
 
 }
+
