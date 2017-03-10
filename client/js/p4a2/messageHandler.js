@@ -74,7 +74,13 @@ message_handler.prototype.greetingHandler = function(data) {
     var msgData = {};
     msgData.target = data.sender;
     msgData.ts = Date.parse(new Date());
-    msgData.payload = "Jone";
+    msgData.payload = {
+        nodeColorNormal: window.nodeColorNormal,
+        nodeColorExpand: window.nodeColorExpand,
+        strokeColorExpand: window.strokeColorExpand,
+        nodeColorSelect: window.nodeColorSelect,
+        strokeColorSelect: window.strokeColorSelect
+    };
     msgData = JSON.stringify(msgData);
     self.sendMessage('Bye', msgData);
 }
@@ -140,8 +146,8 @@ message_handler.prototype.calGraphLayoutResult = function() {
 
 message_handler.prototype.highlightNodeArr = function(data) {
 
-     d3.selectAll('circle').style("fill", function(d) {
-        if(d.expand == true)
+    d3.selectAll('circle').style("fill", function(d) {
+        if (d.expand == true)
             return window.Config.nodeColorExpand;
         else
             return window.Config.nodeColorNormal
@@ -159,11 +165,11 @@ message_handler.prototype.highlightNodeArr = function(data) {
 message_handler.prototype.nodeArrAnimationHandler = function(data) {
     var self = this;
     d3.selectAll('circle').style("fill", function(d) {
-            if(d.expand == true)
-                return window.Config.nodeColorExpand;
-            else
-                return window.Config.nodeColorNormal;
-        });
+        if (d.expand == true)
+            return window.Config.nodeColorExpand;
+        else
+            return window.Config.nodeColorNormal;
+    });
     var wholeData = data;
     data = data.payload;
     console.log("receive photo");
@@ -200,7 +206,29 @@ message_handler.prototype.nodeArrAnimationHandler = function(data) {
         .attr("opacity", 0.7)
 }
 
-message_handler.prototype.recv_state_update = function (buf) {
+message_handler.prototype.expandNodeHandler = function(data) {
+    var forceLayout = window.forceLayout
+    var nodesData = forceLayout.initGraphData.nodes
+    var expandNodeWeb = window.expandNodeWeb
+    data = data.payload.nodeArr
+    console.log('expand node', data)
+    for (var i in data) {
+        for (var j in nodesData) {
+            if (nodesData[j].nameid === data[i]) {
+                // console.log(data[i])
+                expandNodeWeb.addData(nodesData[j])
+            }
+        }
+    }
+
+}
+
+message_handler.prototype.shrinkNodeHandler = function(data) {
+
+}
+
+
+message_handler.prototype.recv_state_update = function(buf) {
     state = msgpack.decode(new Uint8Array(buf));
     info = {
         "sender": state[0],
@@ -209,25 +237,7 @@ message_handler.prototype.recv_state_update = function (buf) {
     };
     return info;
 }
-message_handler.prototype.send_state_update = function (ws, identity, name, data) {
+message_handler.prototype.send_state_update = function(ws, identity, name, data) {
     buf = msgpack.encode([identity, name, data]);
     ws.send(buf);
-}
-
-message_handler.prototype.expandNodeHandler = function(data) {
-    var forceLayout = window.forceLayout
-    var nodesData = forceLayout.initGraphData.nodesData
-    var expandNodeWeb = window.expandNodeWeb
-    for(var i in data) {
-        for(var i in nodesData) {
-            if(nodesData[i].nameId == data[i]){
-                expandNodeWeb.addData(nodesData[i])
-            }
-        }
-    }
-    
-}
-
-message_handler.prototype.shrinkNodeHandler = function(data) {
-
 }

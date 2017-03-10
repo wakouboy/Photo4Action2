@@ -7,7 +7,6 @@ window.Config = {
       fixed: false,
       showLabel: false,
       linkWidth: 3,
-      nodeColor: 'steelblue',
       nodeColorNormal: '#66cafe',
       nodeColorExpand: 'orange',
       strokeColorExpand: '#66cafe',
@@ -15,5 +14,8 @@ window.Config = {
       strokeColorSelect: 'red',
       isBundling: 'true',
       strokeWidth: '3px',
-      strokeColor: '#44cef6'
+      strokeColor: '#44cef6',
+      tag: 1 // 判断是否要restart
 };
+
+

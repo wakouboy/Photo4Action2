@@ -152,41 +152,47 @@ force_layout.prototype.draw = function() {
         f_simulation = self.f_simulation;
     var nodes = nodeView.selectAll('.node').data(graph['nodes']);
     var newNodes = nodes.enter();
-    newNodes.append('circle').attr('class', 'node').append('title').text(function(d) {return d.name});
+    newNodes.append('circle').attr('class', 'node').append('title').text(function(d) {
+        return d.name
+    });
     nodes.exit().remove();
     console.log(nodes)
     nodeView.selectAll('.node').attr('cx', 0).attr('cy', 0)
-        .attr('r', function(d){
-            return nodeSize/6* Math.pow(d.paperNum, 0.4) + 3;
+        .attr('r', function(d) {
+            d.r = nodeSize / 6 * Math.pow(d.paperNum, 0.4) + 3;
+            return nodeSize / 6 * Math.pow(d.paperNum, 0.4) + 3;
         })
         .attr("id", function(d) {
             return 'node' + d.nameid
         })
         .attr("fill", function(d) {
-            if(d.expand == true)
+            if (d.expand == true)
                 return window.Config.nodeColorExpand;
             else
                 return window.Config.nodeColorNormal;
         })
         .attr('stroke', function(d) {
-            if(d.expand == true)
+            if (d.expand == true)
                 return window.Config.strokeColorExpand
             else
                 return "none"
         })
         .attr('stroke-width', window.Config.strokeWidth)
-        .on("click", function (d) {
+        .on("click", function(d) {
             console.log("是否可扩展", d.expand)
-            console.log("可以扩展出的节点id", d.nodesToExpand) 
-            if(d.expand == true) {
-               window.expandNodeWeb.addData(d)  
-               self.update()  
-            }                 
+            console.log("可以扩展出的节点id", d.nodesToExpand)
+            if (d.expand == true) {
+                window.expandNodeWeb.addData(d)
+                    //window.messageHandler.expandNodeHandler([d.nameid])
+                self.update()
+            }
         })
         .call(d3.drag()
-        .on("start", dragstarted)
-        .on("drag", dragged)
-        .on("end", dragended));
+            // .container(nodeView)
+            .subject(dragsubject)
+            .on("start", dragstarted)
+            .on("drag", dragged)
+            .on("end", dragended));
 
     var links = linkView.selectAll('.link').data(graph['links']);
     var newLinks = links.enter().append('line').attr('class', 'link').attr('stroke-width', linkWidth)
@@ -202,30 +208,45 @@ force_layout.prototype.draw = function() {
             return d.name;
         }).attr('dx', 12).attr('dy', '.35em')
         .attr('display', function(d) {
-            if (d.type === 'root' && !d.expand) return 'block';
+            if (d.type === 'root' || d.expand) return 'block';
             else return 'none';
         })
         .attr('font-size', '.6em')
 
+    function dragsubject() {
+        return f_simulation.find(d3.event.x, d3.event.y);
+    }
+
     function dragstarted(d) {
-        if (!d3.event.active) f_simulation.alphaTarget(0.01).restart();
-        d.fx = d.x;
-        d.fy = d.y;
+        console.log("dragstarted")
+            //if (!d3.event.active) f_simulation.alphaTarget(0.2).restart();
+            // d.fx = d.x;
+            // d.fy = d.y;
+            // d.fixed = true;
+
     }
+
     function dragged(d) {
-        d.fx = d3.event.x;
-        d.fy = d3.event.y;
+        // console.log(d.fx, d3.event.x)
+        // console.log(d.fy, d3.event.y)
+        // d3.select(this).attr("cx", d.x = d3.event.x).attr("cy", d.y = d3.event.y);
+        // linkView.selectAll('.link').attr()
+        // d.fx = d3.event.x;
+        // d.fy = d3.event.y;
     }
+
     function dragended(d) {
-        if (!d3.event.active) f_simulation.alphaTarget(0);
-        d.fx = null;
-        d.fy = null;
+        // if (!d3.event.active) f_simulation.alphaTarget(0);
+        // d.fixed = true;
+        // d.fx = null;
+        // d.fy = null;
     }
 
 
 }
 
 force_layout.prototype.calGraph = function() {
+
     var self = this;
     var graph = self.initGraphData,
         viewWidth = self.viewWidth,
@@ -249,7 +270,7 @@ force_layout.prototype.calGraph = function() {
         var sourceDegree = d.source.degree
         var targetDegree = d.target.degree
         var num = Math.min(sourceDegree, targetDegree)
-        //console.log(linkDistance)
+            //console.log(linkDistance)
 
         if (sourceType === targetType) {
             if (sourceType === 'root') {
@@ -308,16 +329,16 @@ force_layout.prototype.calGraph = function() {
         return charge * 1
     })
 
-    console.log(self.f_link)
-    console.log(self.f_manyBody)
+    // console.log(self.f_link)
+    // console.log(self.f_manyBody)
 
-
+    var tag = 0; // 判断是否要重启
     self.f_simulation.force('charge', self.f_manyBody).force('center', self.f_center)
         .force('collide', self.f_collide)
         .force('X', d3.forceX().x(0).strength(0.05))
         .force('Y', d3.forceY().y(0).strength(0.2))
 
-    console.log(self.f_simulation)
+    // console.log(self.f_simulation)
     self.f_simulation.nodes(graph.nodes).force('link', self.f_link).on('tick', tick);
 
     function tick() {
@@ -369,8 +390,15 @@ force_layout.prototype.calGraph = function() {
             .attr("y", function(d) {
                 return d.y;
             });
-        if (simulation.alpha() < 0.01) {
+
+        if(tag === 1) {
+            console.log('sstop')
+            simulation.stop()
+            return
+        }
+        if (simulation.alpha() < 0.01 && tag == 0) {
             //console.log(minW, maxW, minH, maxH)
+            //console.log(minW, maxW, viewWidth)
             if (minW < 0 || maxW > viewWidth) {
                 console.log('width worng')
                 node.attr('cx', function(d) {
@@ -396,7 +424,7 @@ force_layout.prototype.calGraph = function() {
                 $("#load").css('display', 'none');
                 $("#graph").css('display', 'block');
                 $("#controlPanel").css('display', 'block');
-                // simulation.restart()
+                tag = 1;
             }
             if (minH < 0 || maxH > viewHeight) {
                 // console.log("height wrong")
@@ -423,12 +451,12 @@ force_layout.prototype.calGraph = function() {
                 $("#load").css('display', 'none');
                 $("#graph").css('display', 'block');
                 $("#controlPanel").css('display', 'block');
-                // simulation.restart()
+                tag= 1;
             }
 
             // 扩展点
             var n_totalW = maxW - minW;
-            if (n_totalW < (viewWidth) * extendTimes) {
+            if (n_totalW < (viewWidth) * extendTimes + 10) {
                 node
                     .attr('cx', function(d) {
                         d.x = (d.x - minW - (maxW - minW) / 2) / (maxW - minW) * (viewWidth) * extendTimes + viewHeight / 2
@@ -450,14 +478,15 @@ force_layout.prototype.calGraph = function() {
                     .attr("y2", function(d) {
                         return d.target.y;
                     });
+              
                 $("#load").css('display', 'none');
                 $("#graph").css('display', 'block');
                 $("#controlPanel").css('display', 'block');
-                // simulation.restart()
+                tag = 1;
 
             }
             var n_totalH = maxH - minH;
-            if (n_totalH < (viewHeight) * extendTimes) {
+            if (n_totalH < (viewHeight) * extendTimes + 10) {
                 node
                     .attr('cy', function(d) {
                         d.y = (d.y - minH - (maxH - minH) / 2) / (maxH - minH) * (viewHeight) * extendTimes + viewHeight / 2
@@ -481,15 +510,25 @@ force_layout.prototype.calGraph = function() {
                 $("#load").css('display', 'none');
                 $("#graph").css('display', 'block');
                 $("#controlPanel").css('display', 'block');
-                // simulation.restart()
+                tag = 1;
 
             }
 
+        }
+        // console.log(simulation.alpha())
+        console.log(tag)
+        if(tag == 1){
+
+            simulation.alpha(0.01)
+            simulation.restart()
         }
         if (simulation.alpha() < 0.01) {
             $("#load").css('display', 'none');
             $("#graph").css('display', 'block');
             $("#controlPanel").css('display', 'block');
+            graph.nodes.forEach(function(d) {
+                d.fixed = true;
+            })
         }
 
     }
@@ -500,8 +539,8 @@ force_layout.prototype.updateGraph = function(attr) {
     console.log(attr)
     var nodeSize = self.nodeSize
     if (attr == "nodeSize") {
-        d3.selectAll('.node').attr('r', function(d){
-            return nodeSize/6* Math.pow(d.paperNum, 0.4) + 3;
+        d3.selectAll('.node').attr('r', function(d) {
+            return nodeSize / 6 * Math.pow(d.paperNum, 0.4) + 3;
         })
 
     }
@@ -530,5 +569,3 @@ force_layout.prototype.update = function() {
         self.f_simulation.restart();
     }
 }
-
-

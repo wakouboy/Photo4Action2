@@ -15,8 +15,11 @@ expand_node.prototype.addData = function(node) {
 	for (var i in node.nodesToExpand) { 
 		var nodeId = node.nodesToExpand[i];
 		var thisNode = nodesGlobal[nodeId];
-		nodesCurrent.push(thisNode); // 把可以扩展的节点加入当前的节点数组
-		node.nodesToShrink.push(thisNode); // 并修改当前的nodeToShrink
+        if($.inArray(thisNode, nodesCurrent) == -1) {
+            nodesCurrent.push(thisNode); // 把可以扩展的节点加入当前的节点数组
+            node.nodesToShrink.push(thisNode); // 并修改当前的nodeToShrink
+        }
+		
 	}
 	// 对于得到的新数组，遍历当前的nodes数组，并对其他所有节点进行判断是否需要修改状态
 	// 需要修改的状态为，expand和nodesToExpand
