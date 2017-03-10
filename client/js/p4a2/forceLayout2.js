@@ -187,9 +187,10 @@ force_layout.prototype.draw = function() {
             return d.name;
         }).attr('dx', 12).attr('dy', '.35em')
         .attr('display', function(d) {
-            if (d.type === 'root') return 'block';
+            if (d.type === 'root' && !d.expand) return 'block';
             else return 'none';
         })
+        .attr('font-size', '.6em')
 
     function dragstarted(d) {
         if (!d3.event.active) f_simulation.alphaTarget(0.01).restart();
@@ -479,8 +480,11 @@ force_layout.prototype.calGraph = function() {
 force_layout.prototype.updateGraph = function(attr) {
     var self = this;
     console.log(attr)
+    var nodeSize = self.nodeSize
     if (attr == "nodeSize") {
-        d3.selectAll('.node').attr('r', self.nodeSize)
+        d3.selectAll('.node').attr('r', function(d){
+            return nodeSize/6* Math.pow(d.paperNum, 0.4) + 3;
+        })
 
     }
     if (attr == "linkWidth") {

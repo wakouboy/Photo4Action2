@@ -9,7 +9,7 @@ var message_handler = function() {
     self.ws = self.start_websocket(self.identity, self.wsHost, self.wsPort, self.wsPath, onmessage_callback = function(msg) {
         console.log('msg~~~~', msg);
         //console.log('msg~~~~~', msg.data);
-        window.state = recv_state_update(msg.data);
+        window.state = self.recv_state_update(msg.data);
         if (typeof state.data !== "string") {
             state.data = String.fromCharCode.apply(null, new Uint8Array(state.data));
         }
@@ -65,7 +65,7 @@ message_handler.prototype.start_websocket = function(identity, ws_host, ws_port,
 }
 message_handler.prototype.sendMessage = function(msg, data) {
     var self = this;
-    send_state_update(self.ws, self.identity, msg, data);
+    self.send_state_update(self.ws, self.identity, msg, data);
 }
 
 message_handler.prototype.greetingHandler = function(data) {
@@ -94,7 +94,9 @@ message_handler.prototype.getGraphLayoutHandler = function(data) {
 
 message_handler.prototype.calGraphLayoutResult = function() {
     var self = this
-    var data = froce_layout.graphData
+    console.log(window.forceLayout)
+    var data = forceLayout.initGraphData;
+
     console.log("***************")
         //console.log(data.nodes)
     console.log("***************", data)
@@ -106,7 +108,7 @@ message_handler.prototype.calGraphLayoutResult = function() {
         var x = Math.floor(d_node.x);
         var y = Math.floor(d_node.y);
         //console.log(d_node.id+ " x "+ d_node.x + " y " + d_node.y );
-        var r = calcRadius(d_node.paperNum)
+        var r = d_node.r
         var id = d_node.nameid;
         var name = d_node.name;
         var type = d_node.type
@@ -186,6 +188,20 @@ message_handler.prototype.nodeArrAnimationHandler = function(data) {
         .attr("fill", 'none')
         .attr("stroke-width", "2px")
         .attr("opacity", 0.7)
+}
+
+message_handler.prototype.recv_state_update = function (buf) {
+    state = msgpack.decode(new Uint8Array(buf));
+    info = {
+        "sender": state[0],
+        "name": state[1],
+        "data": state[2]
+    };
+    return info;
+}
+message_handler.prototype.send_state_update = function (ws, identity, name, data) {
+    buf = msgpack.encode([identity, name, data]);
+    ws.send(buf);
 }
 
 message_handler.prototype.expandNodeHandler = function(data) {

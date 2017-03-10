@@ -37,8 +37,8 @@ var sliderBarConfig = {
     'nodeSize' : {
         'barSelector': '#nodeSizeBar',
         'valSelector': '#nodeSizeValue',
-        'range': [1, 10, 4],
-        'ratio': 1,
+        'range': [1, 100, 4],
+        'ratio': 10,
         'save': 'nodeSize'
     },
     'linkWidth' : {
@@ -53,10 +53,8 @@ var sliderBarConfig = {
 $(document).ready(function() {
     //force_layout.init()
     var forceLayout = new force_layout("#graph");
-    window.forceLayout = forceLayout;
     // fileUpload = new file_upload("loadingDataButton");
-
-
+    window.forceLayout = forceLayout
     d3.json('data/nodes527links1705.json', function(error, graph) {
         if (error) throw error;
 
@@ -68,7 +66,7 @@ $(document).ready(function() {
     graphLayoutClick();
     // iconEvent();
     controlPanelTitleEvent();
-    window.messageHandler = new message_handler();
+    var messageHandler = new message_handler();
 })
 
 function setBar() {
