@@ -150,20 +150,30 @@ var force_layout = {
     highlightNodeArr: function(data) {
 
         var self = this;
-        d3.selectAll('circle').style("fill", window.Config.nodeColor);
+        d3.selectAll('circle').style("fill", function(d) {
+            if(d.expand == true)
+                return window.Config.nodeColorExpand;
+            else
+                return window.Config.nodeColorNormal
+        });
         var wholeData = data;
         data = data.payload.nodeArr
         console.log("receive photo");
         console.log(data);
         for (var i in data) {
             console.log('circle id', data[i])
-            d3.select("#node" + data[i]).style("fill", "red")
+            d3.select("#node" + data[i]).style("fill", window.Config.nodeColorSelect)
         }
         // my function -- change color red
     },
     nodeArrAnimationHandler: function(data) {
         var self = this;
-        d3.selectAll('circle').style("fill", window.Config.nodeColor);
+        d3.selectAll('circle').style("fill", function(d) {
+            if(d.expand == true)
+                return window.Config.nodeColorExpand;
+            else
+                return window.Config.nodeColorNormal
+        });
         var wholeData = data;
         data = data.payload;
         console.log("receive photo");
@@ -179,7 +189,7 @@ var force_layout = {
             borderArray.cx.push(+selectionNode.attr("cx"))
             borderArray.cy.push(+selectionNode.attr("cy"))
             rMax = Math.max(rMax, +selectionNode.attr("r"))
-            selectionNode.style("fill", "red")
+            selectionNode.style("fill", window.Config.nodeColorSelect)
         }
         var selectionBorder = {}
         selectionBorder.left = d3.min(borderArray.cx)
@@ -194,7 +204,7 @@ var force_layout = {
             .attr("y", selectionBorder.top - rMax)
             .attr("width", selectionBorder.right - selectionBorder.left + 2 * rMax)
             .attr("height", selectionBorder.bottom - selectionBorder.top + 2 * rMax)
-            .attr("stroke", "red")
+            .attr("stroke", window.Config.strokeColorSelect)
             .attr("fill", 'none')
             .attr("stroke-width", "2px")
             .attr("opacity", 0.7)
@@ -305,6 +315,7 @@ var force_layout = {
                 nodesData[i].id = nodesData[i].index
                 nodesData[i]['nameid'] = tmpId
                 nodesData[i]['expand'] = false // true表示可以expand  false表示可以shrink
+                nodesData[i]['shrink'] = false // true表示可以shrink false表示不可以shrink
                 nodesData[i]['neighbor'] = [] // 记录邻居节点
                 nodesData[i]['neighborLinksIndex'] = [] // 记录邻居边的id
                 nodesData[i]['nodesToExpand'] = [] // 表示需要扩展出的节点的id
@@ -388,11 +399,14 @@ var force_layout = {
                     return 'node' + d.nameid
                 })
                 .attr("fill", function(d) {
-                    return window.Config.nodeColor;
+                    if(d.expand == true)
+                        return window.Config.nodeColorExpand;
+                    else
+                        return window.Config.nodeColorNormal;
                 })
                 .attr('stroke', function(d) {
                     if(d.expand == true)
-                        return "#44cef6"
+                        return window.Config.strokeColorExpand
                     else
                         return "none"
                 })

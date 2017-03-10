@@ -9,21 +9,21 @@ var sliderBarConfig = {
     'distance': {
         'barSelector': '#distanceBar',
         'valSelector': '#distanceValue',
-        'range': [0, 100, 30],
+        'range': [0, 100, 20],
         'ratio': 1,
         'save': 'linkDistance'
     },
     'linkStrength': {
         'barSelector': '#linkStrengthBar',
         'valSelector': '#linkStrengthValue',
-        'range': [0, 100, 0.45],
+        'range': [0, 100, 0.7],
         'ratio': 100,
         'save': 'linkStrength'
     },
     'nodeStrength': {
         'barSelector': '#nodeStrengthBar',
         'valSelector': '#nodeStrengthValue',
-        'range': [-1000, 100, -100],
+        'range': [-1000, 100, -200],
         'ratio': 1,
         'save': 'nodeStrength'
     },
@@ -55,6 +55,7 @@ $(document).ready(function() {
     var forceLayout = new force_layout("#graph");
     // fileUpload = new file_upload("loadingDataButton");
     window.forceLayout = forceLayout
+     // $( "#controlPanel" ).resizable();
     d3.json('data/nodes527links1705.json', function(error, graph) {
         if (error) throw error;
 
@@ -66,7 +67,9 @@ $(document).ready(function() {
     graphLayoutClick();
     // iconEvent();
     controlPanelTitleEvent();
-    var messageHandler = new message_handler();
+    window.messageHandler = new message_handler();
+    window.expandNodeWeb = new expand_node();
+
 })
 
 function setBar() {

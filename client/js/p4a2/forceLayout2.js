@@ -6,10 +6,10 @@ var force_layout = function(v_panelSelectcor) {
     self.linkWidth = 1;
     // id type = id / index
     self.linkNodeMappingType = 'id';
-    self.linkDistance = 30;
-    self.linkStrength = 0.3;
+    self.linkDistance = 20;
+    self.linkStrength = 0.7;
     // 点的strength，正值，表示相互吸引，负值表示相互排斥
-    self.nodeStrength = -30;
+    self.nodeStrength = -200;
     self.collideStrength = 0.7;
 
     self.init();
@@ -44,18 +44,21 @@ force_layout.prototype.setData = function(v_data) {
     var self = this;
     self.dataProcess(v_data);
     console.log(v_data)
-    self.graphData = v_data.coauthorGraph;
-    self.initGraphData = v_data.initGraph;
+    self.graphData = v_data.coauthorGraph; // 全局的graphData
+    self.initGraphData = v_data.initGraph; // 初始的graphData
     self.handleGraph();
 }
 
 force_layout.prototype.dataProcess = function(graph) {
     var nodesData = graph.coauthorGraph.nodes
+    var attrNodesData = []
+    var attrLinksData = []
     for (var i in nodesData) {
         var tmpId = nodesData[i].id
         nodesData[i].id = nodesData[i].index
         nodesData[i]['nameid'] = tmpId
         nodesData[i]['expand'] = false // true表示可以expand  false表示可以shrink
+        nodesData[i]['shrink'] = false // true表示可以shrink false表示不可以shrink
         nodesData[i]['neighbor'] = [] // 记录邻居节点
         nodesData[i]['neighborLinksIndex'] = [] // 记录邻居边的id
         nodesData[i]['nodesToExpand'] = [] // 表示需要扩展出的节点的id
@@ -151,6 +154,7 @@ force_layout.prototype.draw = function() {
     var newNodes = nodes.enter();
     newNodes.append('circle').attr('class', 'node').append('title').text(function(d) {return d.name});
     nodes.exit().remove();
+    console.log(nodes)
     nodeView.selectAll('.node').attr('cx', 0).attr('cy', 0)
         .attr('r', function(d){
             return nodeSize/6* Math.pow(d.paperNum, 0.4) + 3;
@@ -159,15 +163,26 @@ force_layout.prototype.draw = function() {
             return 'node' + d.nameid
         })
         .attr("fill", function(d) {
-            return window.Config.nodeColor;
+            if(d.expand == true)
+                return window.Config.nodeColorExpand;
+            else
+                return window.Config.nodeColorNormal;
         })
         .attr('stroke', function(d) {
-            if(d.expand)
-                return window.Config.strokeColor;
+            if(d.expand == true)
+                return window.Config.strokeColorExpand
             else
                 return "none"
         })
         .attr('stroke-width', window.Config.strokeWidth)
+        .on("click", function (d) {
+            console.log("是否可扩展", d.expand)
+            console.log("可以扩展出的节点id", d.nodesToExpand) 
+            if(d.expand == true) {
+               window.expandNodeWeb.addData(d)  
+               self.update()  
+            }                 
+        })
         .call(d3.drag()
         .on("start", dragstarted)
         .on("drag", dragged)
@@ -299,7 +314,7 @@ force_layout.prototype.calGraph = function() {
 
     self.f_simulation.force('charge', self.f_manyBody).force('center', self.f_center)
         .force('collide', self.f_collide)
-        .force('X', d3.forceX().x(0).strength(0.02))
+        .force('X', d3.forceX().x(0).strength(0.05))
         .force('Y', d3.forceY().y(0).strength(0.2))
 
     console.log(self.f_simulation)
@@ -357,10 +372,10 @@ force_layout.prototype.calGraph = function() {
         if (simulation.alpha() < 0.01) {
             //console.log(minW, maxW, minH, maxH)
             if (minW < 0 || maxW > viewWidth) {
-                //console.log(minW, minH, maxH, maxW)
+                console.log('width worng')
                 node.attr('cx', function(d) {
                     d.x = (d.x - minW - (maxW - minW) / 2) / (maxW - minW) * (viewWidth) + viewWidth / 2
-                        //console.log(d.x)
+                    graph.nodes[d.index].x = d.x
                     return d.x
                 })
 
@@ -381,13 +396,14 @@ force_layout.prototype.calGraph = function() {
                 $("#load").css('display', 'none');
                 $("#graph").css('display', 'block');
                 $("#controlPanel").css('display', 'block');
-                simulation.restart()
+                // simulation.restart()
             }
             if (minH < 0 || maxH > viewHeight) {
-                //console.log(minW, minH, maxH, maxW)
+                // console.log("height wrong")
                 node
                     .attr('cy', function(d) {
                         d.y = (d.y - minH - (maxH - minH) / 2) / (maxH - minH) * (viewHeight) + viewHeight / 2
+                        graph.nodes[d.index].y = d.y
                         return d.y
                     })
 
@@ -407,7 +423,7 @@ force_layout.prototype.calGraph = function() {
                 $("#load").css('display', 'none');
                 $("#graph").css('display', 'block');
                 $("#controlPanel").css('display', 'block');
-                simulation.restart()
+                // simulation.restart()
             }
 
             // 扩展点
@@ -416,6 +432,7 @@ force_layout.prototype.calGraph = function() {
                 node
                     .attr('cx', function(d) {
                         d.x = (d.x - minW - (maxW - minW) / 2) / (maxW - minW) * (viewWidth) * extendTimes + viewHeight / 2
+                        graph.nodesData[d.index].x = d.x
                         return d.x
                     })
 
@@ -436,7 +453,7 @@ force_layout.prototype.calGraph = function() {
                 $("#load").css('display', 'none');
                 $("#graph").css('display', 'block');
                 $("#controlPanel").css('display', 'block');
-                simulation.restart()
+                // simulation.restart()
 
             }
             var n_totalH = maxH - minH;
@@ -444,6 +461,7 @@ force_layout.prototype.calGraph = function() {
                 node
                     .attr('cy', function(d) {
                         d.y = (d.y - minH - (maxH - minH) / 2) / (maxH - minH) * (viewHeight) * extendTimes + viewHeight / 2
+                        graph.nodesData[d.index].y = d.y
                         return d.y
                     })
 
@@ -463,7 +481,7 @@ force_layout.prototype.calGraph = function() {
                 $("#load").css('display', 'none');
                 $("#graph").css('display', 'block');
                 $("#controlPanel").css('display', 'block');
-                simulation.restart()
+                // simulation.restart()
 
             }
 
@@ -489,7 +507,6 @@ force_layout.prototype.updateGraph = function(attr) {
     }
     if (attr == "linkWidth") {
         d3.selectAll('.link').attr('stroke-width', self.linkWidth)
-
     }
     self.calGraph();
     if (self.f_simulation.alpha() < 0.001) {
@@ -500,6 +517,18 @@ force_layout.prototype.updateGraph = function(attr) {
         self.f_simulation.restart();
     }
 
+}
+force_layout.prototype.update = function() {
+    var self = this;
+    self.draw();
+    self.calGraph();
+    if (self.f_simulation.alpha() < 0.001) {
+        self.f_simulation.alpha(0.4);
+        self.f_simulation.restart();
+    } else {
+        self.f_simulation.alpha(0.4);
+        self.f_simulation.restart();
+    }
 }
 
 
