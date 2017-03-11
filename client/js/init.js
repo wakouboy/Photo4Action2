@@ -37,7 +37,7 @@ var sliderBarConfig = {
     'nodeSize' : {
         'barSelector': '#nodeSizeBar',
         'valSelector': '#nodeSizeValue',
-        'range': [1, 100, 4],
+        'range': [1, 200, 4],
         'ratio': 10,
         'save': 'nodeSize'
     },

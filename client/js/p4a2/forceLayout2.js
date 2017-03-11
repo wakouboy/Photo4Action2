@@ -206,13 +206,18 @@ force_layout.prototype.draw = function() {
     texts.exit().remove();
     textView.selectAll('.text').text(function(d) {
             return d.name;
-        }).attr('dx', 12).attr('dy', '.35em')
+        }).attr('dx', function(d){
+            return nodeSize / 6 * Math.pow(d.paperNum, 0.4) + 3 + 10;
+        })
+        // .attr('dy', '.35em')
         .attr('display', function(d) {
             if (d.type === 'root' || d.expand) return 'block';
             else return 'none';
         })
-        .attr('font-size', '.6em')
-
+        .style('font-size', function(d) {
+            return nodeSize / 3 * Math.pow(d.paperNum, 0.4) + 3 +'px';
+        })
+    console.log(nodeSize * 4 + 'px')
     function dragsubject() {
         return f_simulation.find(d3.event.x, d3.event.y);
     }
@@ -518,8 +523,7 @@ force_layout.prototype.calGraph = function() {
         // console.log(simulation.alpha())
         console.log(tag)
         if(tag == 1){
-
-            simulation.alpha(0.01)
+            simulation.alpha(0.2)
             simulation.restart()
         }
         if (simulation.alpha() < 0.01) {
@@ -540,7 +544,13 @@ force_layout.prototype.updateGraph = function(attr) {
     var nodeSize = self.nodeSize
     if (attr == "nodeSize") {
         d3.selectAll('.node').attr('r', function(d) {
-            return nodeSize / 6 * Math.pow(d.paperNum, 0.4) + 3;
+            return nodeSize / 3* Math.pow(d.paperNum, 0.4) + 3 + 'px';
+        })
+        d3.selectAll('.text').style('font-size', function(d) {
+            return nodeSize / 3* Math.pow(d.paperNum, 0.4) + 3 + 'px';
+        })
+        .attr('dx', function(d){
+            return nodeSize / 6 * Math.pow(d.paperNum, 0.4) + 3 + 10;
         })
 
     }

@@ -14,8 +14,8 @@ body {
 }
 #controlPanel{
 	position:absolute;
-	width:19%;
-	left:80%;
+	width:15%;
+	left:85%;
 	font-family: Microsoft Yahei;
 	border:2px solid #ccc;
 	transition:display 0.2s ease 0.2s;
